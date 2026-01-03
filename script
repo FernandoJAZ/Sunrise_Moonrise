@@ -1,0 +1,51 @@
+// El selector proporcionado por el usuario
+const selectorTabla = '#as-monthsun'; 
+
+const tabla = document.querySelector(selectorTabla);
+let datosCSV = "";
+
+if (tabla) {
+    // 1. Obtener la información del mes y año actual de la URL para añadir una columna de contexto.
+    const params = new URLSearchParams(window.location.search);
+    const mes = params.get('month') || new Date().getMonth() + 1;
+    const anio = params.get('year') || new Date().getFullYear();
+    
+    const mesAnio = `${anio}-${mes.toString().padStart(2, '0')}`;
+    
+    // 2. Iterar sobre las filas de la tabla
+    for (let i = 0; i < tabla.rows.length; i++) {
+        const fila = tabla.rows[i];
+        let filaTexto = [];
+
+        // Añadir la columna de Contexto (Año-Mes) al inicio de cada fila de datos
+        if (i > 0) { 
+            filaTexto.push(mesAnio);
+        } else {
+            // Para el encabezado, añade un título para esta nueva columna
+            filaTexto.push("Año-Mes");
+        }
+
+        // 3. Iterar sobre las celdas de la fila
+        for (let j = 0; j < fila.cells.length; j++) {
+            // Obtiene el texto y limpia comillas para evitar problemas con el CSV
+            let cellText = fila.cells[j].textContent.trim();
+            cellText = cellText.replace(/"/g, '""'); // Escapar comillas dobles
+
+            // Envuelve el texto en comillas si contiene comas o es el encabezado, para seguridad CSV
+            filaTexto.push(`"${cellText}"`);
+        }
+        
+        // Unir las celdas con comas y añadir un salto de línea
+        datosCSV += filaTexto.join(',') + '\n';
+    }
+    
+    // 4. Copiar los datos al portapapeles y mostrar en consola
+    copy(datosCSV);
+    console.log(`✅ Datos de ${mesAnio} copiados al portapapeles.`);
+    console.log("➡️ Pégalos en tu Google Sheet.");
+    console.log("-----------------------------------------");
+    console.log(datosCSV);
+    
+} else {
+    console.error(`❌ No se encontró la tabla con el selector: ${selectorTabla}`);
+}
